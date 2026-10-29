@@ -175,6 +175,12 @@ div.stButton > button:hover:not(:disabled) {
     line-height: 1.3 !important;
 }
 
+/* 가능 - 민트색 */
+.st-key-green_btn button {
+    background-color: #baf3cb !important;
+    color: #275c3e !important;
+    border: 3px solid #9be5b0 !important;
+}
 
 /* 제한 */
 .st-key-yellow_btn button {
