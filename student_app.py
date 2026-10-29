@@ -2,7 +2,6 @@
 import streamlit as st
 import requests
 import uuid
-from datetime import datetime
 from html import escape
 
 # ==========================================
@@ -52,7 +51,7 @@ if "save_error" not in st.session_state:
     st.session_state.save_error = ""
 
 # ==========================================
-# 3. 디자인
+# 3. 파스텔톤 디자인
 # ==========================================
 
 st.markdown("""
@@ -112,7 +111,7 @@ div[data-testid="stMarkdownContainer"] {
     margin-bottom: 25px;
 }
 
-/* 평가 기준 안내 */
+/* 시작 화면의 안내 */
 .guide-box {
     background: #fff2f8;
     border: 2px dashed #efc2d9;
@@ -123,7 +122,7 @@ div[data-testid="stMarkdownContainer"] {
     margin: 25px 0;
 }
 
-/* 버튼 기본 */
+/* 모든 버튼의 기본 디자인 */
 div.stButton > button {
     font-family: 'Gowun Dodum', sans-serif !important;
     width: 100%;
@@ -146,7 +145,7 @@ div.stButton > button:hover:not(:disabled) {
     font-size: 19px;
 }
 
-/* 신호등 버튼 공통 */
+/* 신호등 버튼 크기 */
 .st-key-green_btn button,
 .st-key-yellow_btn button,
 .st-key-red_btn button {
@@ -157,28 +156,28 @@ div.stButton > button:hover:not(:disabled) {
     white-space: normal !important;
 }
 
-/* 가능 */
+/* 가능 - 파스텔 민트 */
 .st-key-green_btn button {
     background: #baf3cb !important;
     color: #316747 !important;
     border: 3px solid #9be5b0 !important;
 }
 
-/* 제한 */
+/* 제한 - 파스텔 노랑 */
 .st-key-yellow_btn button {
     background: #ffedac !important;
     color: #806123 !important;
     border: 3px solid #ffdc83 !important;
 }
 
-/* 금지 */
+/* 금지 - 파스텔 분홍 */
 .st-key-red_btn button {
     background: #ffc6cb !important;
     color: #873f49 !important;
     border: 3px solid #ffa9b2 !important;
 }
 
-/* 다음 버튼 */
+/* 다음 및 처음 버튼 */
 .st-key-next_button button,
 .st-key-home_button button {
     background: #ded8ff !important;
@@ -188,6 +187,7 @@ div.stButton > button:hover:not(:disabled) {
     font-size: 19px;
 }
 
+/* 다음 버튼 비활성화 */
 .st-key-next_button button:disabled {
     background: #f0edf5 !important;
     color: #aaa3b5 !important;
@@ -195,7 +195,7 @@ div.stButton > button:hover:not(:disabled) {
     opacity: 1 !important;
 }
 
-/* 이유 입력 */
+/* 이유 작성 칸 */
 .stTextArea textarea {
     font-family: 'Gowun Dodum', sans-serif !important;
     background: #ffffff !important;
@@ -210,7 +210,7 @@ div.stButton > button:hover:not(:disabled) {
     box-shadow: 0 0 0 2px #eee5fb !important;
 }
 
-/* 안내 및 결과 */
+/* 선택 안내 */
 .info-box {
     background: #f2f0ff;
     border: 2px solid #ddd5fa;
@@ -222,6 +222,7 @@ div.stButton > button:hover:not(:disabled) {
     margin: 20px 0;
 }
 
+/* 완료 화면 결과 */
 .result-card {
     background: #fff2f8;
     border: 2px solid #f3d2e4;
@@ -245,6 +246,7 @@ div[data-testid="stProgress"] {
     margin-top: 20px;
 }
 
+/* 스마트폰 화면 */
 @media (max-width: 500px) {
     .main-title {
         font-size: 1.8rem;
@@ -271,6 +273,7 @@ div[data-testid="stProgress"] {
 # ==========================================
 
 def send_evaluation(group, answer, reason):
+    """Apps Script를 통해 평가 결과 저장"""
 
     payload = {
         "action": "save",
@@ -283,10 +286,12 @@ def send_evaluation(group, answer, reason):
     response = requests.post(
         st.secrets["apps_script_url"],
         json=payload,
-        timeout=25
+        timeout=(4, 12),
+        allow_redirects=True
     )
 
     response.raise_for_status()
+
     result = response.json()
 
     if not result.get("ok"):
@@ -299,23 +304,33 @@ def send_evaluation(group, answer, reason):
 # ==========================================
 
 def start_evaluation():
+    """평가 시작"""
+
     st.session_state.page = "evaluation"
     st.session_state.current_group = 1
     st.session_state.selected = None
     st.session_state.results = []
     st.session_state.save_error = ""
+
+    # 학생별 임의 참여 ID
     st.session_state.participant_id = uuid.uuid4().hex
 
+    # 이전 평가 이유 초기화
     for i in range(1, TOTAL_GROUPS + 1):
-        st.session_state.pop(f"reason_{i}", None)
+        st.session_state.pop(
+            f"reason_{i}", None
+        )
 
 
 def select_answer(answer):
+    """평가 버튼은 선택만 변경"""
+
     st.session_state.selected = answer
     st.session_state.save_error = ""
 
 
 def save_and_next():
+    """Google Sheets 저장 후 다음 조로 이동"""
 
     group = st.session_state.current_group
     answer = st.session_state.selected
@@ -324,9 +339,14 @@ def save_and_next():
         f"reason_{group}", ""
     ).strip()
 
+    # 선택과 이유가 모두 있어야 저장
     if answer not in CRITERIA or not reason:
-        return
+        st.session_state.save_error = (
+            "평가를 선택하고 이유를 작성해 주세요."
+        )
+        return False
 
+    # Google Sheets로 전송
     try:
         send_evaluation(group, answer, reason)
 
@@ -335,8 +355,9 @@ def save_and_next():
             "평가 결과를 저장하지 못했어요. "
             "잠시 후 다시 시도해 주세요."
         )
-        return
+        return False
 
+    # 저장 성공
     st.session_state.save_error = ""
 
     st.session_state.results.append({
@@ -352,8 +373,12 @@ def save_and_next():
     else:
         st.session_state.page = "complete"
 
+    return True
+
 
 def go_home():
+    """시작 화면으로 이동"""
+
     st.session_state.page = "home"
     st.session_state.current_group = 1
     st.session_state.selected = None
@@ -399,6 +424,7 @@ if st.session_state.page == "home":
 
     st.write("")
 
+    # 학생용에는 교사용 버튼 없음
     st.button(
         "🌷 평가 시작하기",
         key="start_button",
@@ -432,7 +458,13 @@ elif st.session_state.page == "evaluation":
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3, gap="small")
+    # --------------------------------------
+    # 신호등 버튼
+    # --------------------------------------
+
+    col1, col2, col3 = st.columns(
+        3, gap="small"
+    )
 
     with col1:
         st.button(
@@ -461,9 +493,14 @@ elif st.session_state.page == "evaluation":
             args=("금지",)
         )
 
+    # --------------------------------------
+    # 현재 선택한 평가 표시
+    # --------------------------------------
+
     selected = st.session_state.selected
 
     if selected is not None:
+
         button_key = {
             "가능": "green_btn",
             "제한": "yellow_btn",
@@ -493,6 +530,7 @@ elif st.session_state.page == "evaluation":
             """,
             unsafe_allow_html=True
         )
+
     else:
         st.markdown("""
         <div class="info-box">
@@ -501,6 +539,10 @@ elif st.session_state.page == "evaluation":
         """, unsafe_allow_html=True)
 
     st.write("")
+
+    # --------------------------------------
+    # 평가 이유 작성
+    # --------------------------------------
 
     reason = st.text_area(
         "📝 그렇게 평가한 이유를 작성해 주세요.",
@@ -513,6 +555,8 @@ elif st.session_state.page == "evaluation":
         key=f"reason_{group}"
     )
 
+    # 이유를 먼저 작성하거나
+    # 버튼을 먼저 선택해도 정상 동작
     can_next = (
         st.session_state.selected is not None
         and bool(reason.strip())
@@ -525,16 +569,31 @@ elif st.session_state.page == "evaluation":
     else:
         next_text = "💌 모든 평가 제출하기"
 
-    st.button(
+    # --------------------------------------
+    # 다음 조 버튼 (수정)
+    # --------------------------------------
+
+    if st.button(
         next_text,
         key="next_button",
         use_container_width=True,
-        disabled=not can_next,
-        on_click=save_and_next
-    )
+        disabled=not can_next
+    ):
 
+        with st.spinner(
+            "🌷 평가 결과를 저장하고 있어요..."
+        ):
+            success = save_and_next()
+
+        # 저장 성공 시에만 화면 전환
+        if success:
+            st.rerun()
+
+    # 저장 실패 시 메시지 표시
     if st.session_state.save_error:
-        st.error(st.session_state.save_error)
+        st.error(
+            st.session_state.save_error
+        )
 
     if not can_next:
         st.markdown("""
@@ -545,7 +604,7 @@ elif st.session_state.page == "evaluation":
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 8. 완료 화면
+# 8. 평가 완료 화면
 # ==========================================
 
 elif st.session_state.page == "complete":
