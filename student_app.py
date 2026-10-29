@@ -51,20 +51,20 @@ if "save_error" not in st.session_state:
     st.session_state.save_error = ""
 
 # ==========================================
-# 3. 디자인 - Pretendard
+# 3. 디자인 - 고운돋움 + 주아체 제목
 # ==========================================
 
 st.markdown("""
 <style>
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
 
-/* 전체 폰트 */
+/* 기본 글씨체: 고운돋움 */
 html, body, p, button, textarea, input,
 h1, h2, h3, label, span,
 [data-testid="stAppViewContainer"],
 [data-testid="stMarkdownContainer"],
 [data-testid="stWidgetLabel"] {
-    font-family: 'Pretendard', sans-serif !important;
+    font-family: 'Gowun Dodum', sans-serif !important;
 }
 
 /* 전체 배경 */
@@ -83,34 +83,33 @@ h1, h2, h3, label, span,
     padding-bottom: 3rem;
 }
 
-/* 메인 제목 */
+/* 메인 제목: 둥근 주아체 */
 .main-title {
+    font-family: 'Jua', sans-serif !important;
     text-align: center;
-    font-size: 2.4rem;
-    font-weight: 800;
+    font-size: 2.6rem;
+    font-weight: 400;
     color: #594968;
     margin: 20px 0;
-    letter-spacing: -0.7px;
+}
+
+/* 조별 제목 */
+.group-title {
+    font-family: 'Jua', sans-serif !important;
+    text-align: center;
+    font-size: 2.3rem;
+    font-weight: 400;
+    color: #594968;
+    margin: 30px 0 12px;
 }
 
 /* 부제목 */
 .subtitle {
     text-align: center;
     font-size: 1.15rem;
-    font-weight: 600;
     color: #75677f;
     line-height: 1.9;
     margin-bottom: 25px;
-}
-
-/* 조별 제목 */
-.group-title {
-    text-align: center;
-    font-size: 2.1rem;
-    font-weight: 800;
-    color: #594968;
-    margin: 30px 0 12px;
-    letter-spacing: -0.5px;
 }
 
 /* 평가 질문 */
@@ -118,7 +117,6 @@ h1, h2, h3, label, span,
     text-align: center;
     color: #615568;
     font-size: 1.2rem;
-    font-weight: 700;
     margin-bottom: 28px;
 }
 
@@ -132,15 +130,14 @@ h1, h2, h3, label, span,
     color: #62536c;
     margin: 25px 0;
     font-size: 1.08rem;
-    font-weight: 600;
 }
 
 /* 버튼 공통 */
 div.stButton > button {
-    font-family: 'Pretendard', sans-serif !important;
+    font-family: 'Gowun Dodum', sans-serif !important;
     width: 100%;
     border-radius: 18px;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     transition: all 0.15s ease;
 }
 
@@ -155,17 +152,16 @@ div.stButton > button:hover:not(:disabled) {
     color: #754f67 !important;
     border: 2px solid #f4bbd4 !important;
     min-height: 65px;
-    font-size: 19px !important;
+    font-size: 22px !important;
 }
 
-/* 신호등 버튼 공통 */
+/* 신호등 버튼 */
 .st-key-green_btn button,
 .st-key-yellow_btn button,
 .st-key-red_btn button {
     height: 95px !important;
     min-height: 95px !important;
-    font-size: 23px !important;
-    font-weight: 800 !important;
+    font-size: 27px !important;
     border-radius: 22px !important;
     white-space: normal !important;
 }
@@ -198,10 +194,10 @@ div.stButton > button:hover:not(:disabled) {
     color: #51467d !important;
     border: 2px solid #c8c0f6 !important;
     min-height: 65px;
-    font-size: 19px !important;
+    font-size: 22px !important;
 }
 
-/* 비활성화 */
+/* 비활성화된 다음 버튼 */
 .st-key-next_button button:disabled {
     background: #f0edf5 !important;
     color: #aaa3b5 !important;
@@ -213,19 +209,17 @@ div.stButton > button:hover:not(:disabled) {
 .stTextArea label,
 [data-testid="stWidgetLabel"] {
     font-size: 1.1rem !important;
-    font-weight: 700 !important;
     color: #5d506b !important;
 }
 
-/* 이유 입력창 */
+/* 평가 이유 입력창 */
 .stTextArea textarea {
-    font-family: 'Pretendard', sans-serif !important;
+    font-family: 'Gowun Dodum', sans-serif !important;
     background: #ffffff !important;
     border: 2px solid #e7d9ed !important;
     border-radius: 18px !important;
     color: #51475a !important;
     font-size: 17px !important;
-    font-weight: 500 !important;
     line-height: 1.7 !important;
     padding: 15px !important;
 }
@@ -246,14 +240,9 @@ div.stButton > button:hover:not(:disabled) {
     line-height: 1.9;
     margin: 23px 0;
     font-size: 1.12rem;
-    font-weight: 600;
 }
 
-.info-box b {
-    font-weight: 800;
-}
-
-/* 완료 화면 */
+/* 평가 완료 결과 */
 .result-card {
     background: #fff2f8;
     border: 2px solid #f3d2e4;
@@ -263,38 +252,27 @@ div.stButton > button:hover:not(:disabled) {
     color: #62536c;
     line-height: 1.9;
     font-size: 1.05rem;
-    font-weight: 500;
     overflow-wrap: anywhere;
 }
 
-.result-card b {
-    font-weight: 800;
-}
-
-/* 안내 문구 */
+/* 작은 안내 문구 */
 .small-note {
     text-align: center;
     color: #82758d;
     font-size: 15px;
-    font-weight: 600;
     line-height: 1.9;
     margin-top: 17px;
 }
 
-/* 진행 표시 */
-div[data-testid="stProgress"] {
-    margin-top: 20px;
-    font-weight: 600;
-}
-
 /* 모바일 화면 */
 @media (max-width: 500px) {
+
     .main-title {
-        font-size: 1.9rem;
+        font-size: 2.1rem;
     }
 
     .group-title {
-        font-size: 1.8rem;
+        font-size: 1.9rem;
     }
 
     .question {
@@ -311,8 +289,14 @@ div[data-testid="stProgress"] {
     .st-key-red_btn button {
         height: 85px !important;
         min-height: 85px !important;
-        font-size: 17px !important;
+        font-size: 21px !important;
         padding: 5px !important;
+    }
+
+    .st-key-start_button button,
+    .st-key-next_button button,
+    .st-key-home_button button {
+        font-size: 19px !important;
     }
 
     .info-box {
@@ -327,7 +311,7 @@ div[data-testid="stProgress"] {
 # ==========================================
 
 def send_all_evaluations(results):
-    """네 조의 평가를 한 번에 전송"""
+    """4개 조 평가 결과를 한 번에 전송"""
 
     payload = {
         "action": "save_all",
@@ -401,7 +385,7 @@ def save_and_next():
         "reason": reason
     }
 
-    # 1~3조: 임시 저장 후 즉시 이동
+    # 1~3조: 임시 저장 후 다음 조로 이동
     if group < TOTAL_GROUPS:
 
         st.session_state.results.append(
@@ -414,7 +398,7 @@ def save_and_next():
 
         return True
 
-    # 4조: 네 개의 평가를 한 번에 전송
+    # 4조: 모든 평가 결과 일괄 전송
     all_results = (
         st.session_state.results + [current_result]
     )
@@ -435,7 +419,7 @@ def save_and_next():
         )
         return False
 
-    # 전송 성공
+    # 전송 성공 시 완료 화면으로
     st.session_state.results = all_results
     st.session_state.selected = None
     st.session_state.save_error = ""
@@ -445,7 +429,7 @@ def save_and_next():
 
 
 def go_home():
-    """시작 화면 이동"""
+    """시작 화면으로 이동"""
 
     st.session_state.page = "home"
     st.session_state.current_group = 1
@@ -557,7 +541,7 @@ elif st.session_state.page == "evaluation":
             args=("금지",)
         )
 
-    # 선택한 평가 강조
+    # 선택한 평가 강조 표시
     selected = st.session_state.selected
 
     if selected is not None:
@@ -602,7 +586,7 @@ elif st.session_state.page == "evaluation":
 
     st.write("")
 
-    # 평가 이유 작성
+    # 평가 이유 입력
     reason = st.text_area(
         "📝 그렇게 평가한 이유를 작성해 주세요.",
         placeholder=(
@@ -614,7 +598,7 @@ elif st.session_state.page == "evaluation":
         key=f"reason_{group}"
     )
 
-    # 평가 버튼과 이유 모두 필수
+    # 평가 선택과 이유 작성 필수
     can_next = (
         st.session_state.selected is not None
         and bool(reason.strip())
@@ -634,7 +618,7 @@ elif st.session_state.page == "evaluation":
         disabled=not can_next
     ):
 
-        # 마지막 조에서만 Google Sheets 전송
+        # 마지막 조에서만 전송
         if group == TOTAL_GROUPS:
 
             with st.spinner(
