@@ -54,210 +54,278 @@ if "save_error" not in st.session_state:
 # 3. 파스텔톤 디자인
 # ==========================================
 
+
+# ==========================================
+# 3. 파스텔톤 디자인 (굵은 글씨 버전)
+# ==========================================
+
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 
-html, body, p, button, textarea,
-div[data-testid="stAppViewContainer"],
-div[data-testid="stWidgetLabel"],
-div[data-testid="stMarkdownContainer"] {
-    font-family: 'Gowun Dodum', sans-serif !important;
+/* 전체 글꼴: 배달의민족 주아체 */
+html, body, p, button, textarea, input,
+h1, h2, h3, label, span,
+[data-testid="stAppViewContainer"],
+[data-testid="stMarkdownContainer"],
+[data-testid="stWidgetLabel"] {
+    font-family: 'Jua', sans-serif !important;
 }
 
+/* 전체 배경 */
 .stApp {
     background: linear-gradient(
-        180deg, #fff8fc 0%, #f7faff 100%
+        180deg,
+        #fff6fb 0%,
+        #f2f7ff 100%
     );
 }
 
+/* 화면 너비 */
 .block-container {
-    max-width: 700px;
-    padding-top: 2rem;
+    max-width: 720px;
+    padding-top: 2.5rem;
     padding-bottom: 3rem;
 }
 
+/* 메인 제목 */
 .main-title {
     text-align: center;
-    font-size: 2.3rem;
-    font-weight: bold;
-    color: #65536d;
-    margin: 15px 0;
+    font-size: 3rem;
+    font-weight: 900;
+    color: #59466c;
+    margin: 20px 0;
+    letter-spacing: 0.5px;
 }
 
+/* 부제목 */
 .subtitle {
     text-align: center;
-    font-size: 1.1rem;
-    color: #85758e;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #6f5c7d;
     line-height: 1.9;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
+/* 조별 제목 */
 .group-title {
     text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #65536d;
-    margin: 25px 0 10px;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #59466c;
+    margin: 30px 0 15px;
 }
 
+/* 평가 질문 */
 .question {
     text-align: center;
-    color: #87778f;
-    font-size: 1.1rem;
-    margin-bottom: 25px;
+    color: #594d66;
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: 30px;
 }
 
-/* 평가 기준 */
+/* 시작 화면의 평가 기준 */
 .guide-box {
-    background: #fff2f8;
-    border: 2px dashed #efc2d9;
-    padding: 24px;
-    border-radius: 22px;
+    background: #fff0f7;
+    border: 3px dashed #edb3d1;
+    padding: 28px;
+    border-radius: 25px;
     line-height: 2.3;
-    color: #67586e;
+    color: #5c4768;
     margin: 25px 0;
+    font-size: 1.25rem;
+    font-weight: 700;
 }
 
 /* 버튼 공통 */
 div.stButton > button {
-    font-family: 'Gowun Dodum', sans-serif !important;
+    font-family: 'Jua', sans-serif !important;
     width: 100%;
-    border-radius: 18px;
-    font-weight: bold;
+    border-radius: 22px;
+    font-weight: 900 !important;
     transition: all 0.15s ease;
+    box-shadow: 0 5px 0 rgba(90, 75, 110, 0.12);
 }
 
 div.stButton > button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 7px 0 rgba(90, 75, 110, 0.15);
 }
 
 /* 시작 버튼 */
 .st-key-start_button button {
-    background: #ffd8e8 !important;
-    color: #754f67 !important;
-    border: 2px solid #f4bbd4 !important;
-    min-height: 60px;
-    font-size: 19px;
+    background: #ffcee4 !important;
+    color: #75445e !important;
+    border: 3px solid #eba8c9 !important;
+    min-height: 75px;
+    font-size: 1.6rem !important;
 }
 
-/* 신호등 버튼 */
+/* 신호등 버튼 공통 */
 .st-key-green_btn button,
 .st-key-yellow_btn button,
 .st-key-red_btn button {
-    height: 95px !important;
-    min-height: 95px !important;
-    font-size: 23px !important;
-    border-radius: 22px !important;
+    height: 115px !important;
+    min-height: 115px !important;
+    font-size: 1.8rem !important;
+    border-radius: 25px !important;
     white-space: normal !important;
+    line-height: 1.4 !important;
 }
 
-/* 가능 */
+/* 가능 - 밝은 민트 */
 .st-key-green_btn button {
-    background: #baf3cb !important;
-    color: #316747 !important;
-    border: 3px solid #9be5b0 !important;
+    background: #b8f2cf !important;
+    color: #245e43 !important;
+    border: 4px solid #7bd6a3 !important;
 }
 
-/* 제한 */
+/* 제한 - 밝은 노랑 */
 .st-key-yellow_btn button {
-    background: #ffedac !important;
-    color: #806123 !important;
-    border: 3px solid #ffdc83 !important;
+    background: #ffe6a0 !important;
+    color: #76571d !important;
+    border: 4px solid #f2ca6e !important;
 }
 
-/* 금지 */
+/* 금지 - 밝은 핑크 */
 .st-key-red_btn button {
-    background: #ffc6cb !important;
-    color: #873f49 !important;
-    border: 3px solid #ffa9b2 !important;
+    background: #ffc0d0 !important;
+    color: #853d53 !important;
+    border: 4px solid #ee94ad !important;
 }
 
-/* 다음, 처음 버튼 */
+/* 다음 및 처음으로 버튼 */
 .st-key-next_button button,
 .st-key-home_button button {
-    background: #ded8ff !important;
-    color: #5c548b !important;
-    border: 2px solid #c8c0f6 !important;
-    min-height: 60px;
-    font-size: 19px;
+    background: #dcd0ff !important;
+    color: #55417f !important;
+    border: 3px solid #bfa8f0 !important;
+    min-height: 75px;
+    font-size: 1.45rem !important;
 }
 
+/* 다음 버튼 비활성화 */
 .st-key-next_button button:disabled {
-    background: #f0edf5 !important;
-    color: #aaa3b5 !important;
-    border: 2px solid #e7e1ec !important;
+    background: #eeebf4 !important;
+    color: #aaa2b5 !important;
+    border: 3px solid #ded7e7 !important;
+    box-shadow: none !important;
     opacity: 1 !important;
 }
 
-/* 입력창 */
+/* 평가 이유 입력 */
+.stTextArea label,
+[data-testid="stWidgetLabel"] {
+    font-size: 1.3rem !important;
+    font-weight: 800 !important;
+    color: #59476a !important;
+}
+
 .stTextArea textarea {
-    font-family: 'Gowun Dodum', sans-serif !important;
+    font-family: 'Jua', sans-serif !important;
     background: #ffffff !important;
-    border: 2px solid #e7d9ed !important;
-    border-radius: 18px !important;
-    color: #554b60 !important;
-    font-size: 17px !important;
+    border: 3px solid #d9c5eb !important;
+    border-radius: 22px !important;
+    color: #4d415a !important;
+    font-size: 1.25rem !important;
+    line-height: 1.7 !important;
+    padding: 18px !important;
 }
 
 .stTextArea textarea:focus {
-    border-color: #c8b6e8 !important;
-    box-shadow: 0 0 0 2px #eee5fb !important;
+    border-color: #b79adf !important;
+    box-shadow: 0 0 0 3px #eee4ff !important;
 }
 
-/* 선택 결과 */
+/* 선택한 평가 안내 */
 .info-box {
-    background: #f2f0ff;
-    border: 2px solid #ddd5fa;
-    color: #635a7e;
-    padding: 18px;
-    border-radius: 16px;
+    background: #eee6ff;
+    border: 3px solid #d3bff5;
+    color: #574379;
+    padding: 22px;
+    border-radius: 22px;
     text-align: center;
-    line-height: 1.8;
-    margin: 20px 0;
+    line-height: 1.9;
+    margin: 25px 0;
+    font-size: 1.35rem;
+    font-weight: 700;
 }
 
-/* 완료 화면 */
+/* 평가 완료 결과 */
 .result-card {
-    background: #fff2f8;
-    border: 2px solid #f3d2e4;
-    padding: 20px;
-    border-radius: 18px;
-    margin: 15px 0;
-    color: #67586d;
+    background: #fff0f8;
+    border: 3px solid #ecc5df;
+    padding: 25px;
+    border-radius: 22px;
+    margin: 18px 0;
+    color: #5d4768;
+    font-size: 1.25rem;
     line-height: 1.8;
     overflow-wrap: anywhere;
 }
 
+/* 작은 안내 문구도 너무 작지 않게 */
 .small-note {
     text-align: center;
-    color: #998c9e;
-    font-size: 14px;
-    line-height: 1.8;
-    margin-top: 15px;
+    color: #806e8f;
+    font-size: 1.15rem;
+    line-height: 1.9;
+    margin-top: 20px;
 }
 
+/* 진행률 표시 */
+div[data-testid="stProgress"] {
+    margin-top: 25px;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+/* 모바일 화면 */
 @media (max-width: 500px) {
+
+    .block-container {
+        padding-top: 1.5rem;
+    }
+
     .main-title {
-        font-size: 1.8rem;
+        font-size: 2.2rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
     }
 
     .group-title {
-        font-size: 1.6rem;
+        font-size: 2rem;
+    }
+
+    .question {
+        font-size: 1.2rem;
+    }
+
+    .guide-box {
+        font-size: 1.05rem;
+        padding: 18px;
     }
 
     .st-key-green_btn button,
     .st-key-yellow_btn button,
     .st-key-red_btn button {
-        font-size: 17px !important;
-        height: 85px !important;
-        min-height: 85px !important;
+        height: 95px !important;
+        min-height: 95px !important;
+        font-size: 1.25rem !important;
         padding: 5px !important;
+    }
+
+    .info-box {
+        font-size: 1.1rem;
     }
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 # ==========================================
 # 4. Google Sheets 일괄 전송
