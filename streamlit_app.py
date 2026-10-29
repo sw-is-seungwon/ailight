@@ -1,8 +1,11 @@
+
 import streamlit as st
+from html import escape
 
 # ==========================================
-# 기본 설정
+# 1. 기본 설정
 # ==========================================
+
 st.set_page_config(
     page_title="AI 신호등 평가",
     page_icon="🚦",
@@ -14,203 +17,19 @@ TOTAL_GROUPS = 4
 CRITERIA = {
     "가능": "인공지능 서비스를 바로 사용할 의사가 있어요.",
     "제한": "조건 또는 보완이 이루어진다면 사용할 의사가 있어요.",
-    "금지": "사용할 의사가 없어요."
+    "금지": "인공지능 서비스를 사용할 의사가 없어요."
+}
+
+EMOJI = {
+    "가능": "🟢",
+    "제한": "🟡",
+    "금지": "🔴"
 }
 
 # ==========================================
-# CSS 스타일
+# 2. 세션 상태
 # ==========================================
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
-html, body, [class*="css"] {
-    font-family: 'Gowun Dodum', sans-serif;
-}
-
-.stApp {
-    background: linear-gradient(180deg, #fffafc 0%, #f8fbff 100%);
-}
-
-.block-container {
-    max-width: 760px;
-    padding-top: 2.5rem;
-    padding-bottom: 3rem;
-}
-
-.main-card {
-    background: #ffffff;
-    border: 2px solid #f6ddea;
-    border-radius: 28px;
-    padding: 28px 24px;
-    box-shadow: 0 10px 30px rgba(236, 214, 226, 0.35);
-    margin-bottom: 20px;
-}
-
-.title-main {
-    text-align: center;
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #5c4b5f;
-    margin-bottom: 0.3rem;
-}
-
-.subtitle-main {
-    text-align: center;
-    color: #857187;
-    font-size: 1.05rem;
-    line-height: 1.7;
-    margin-bottom: 1.2rem;
-}
-
-.guide-box {
-    background: #fff5fa;
-    border: 2px dashed #f3bfd6;
-    border-radius: 22px;
-    padding: 18px 20px;
-    color: #6c5a6f;
-    line-height: 2;
-    margin: 16px 0 20px 0;
-    font-size: 1rem;
-}
-
-.small-note {
-    text-align: center;
-    color: #97879a;
-    font-size: 0.92rem;
-    margin-top: 8px;
-    line-height: 1.6;
-}
-
-.section-title {
-    text-align: center;
-    color: #66556a;
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-top: 0.2rem;
-    margin-bottom: 0.6rem;
-}
-
-.question-text {
-    text-align: center;
-    color: #7b6b7f;
-    font-size: 1.05rem;
-    margin-bottom: 1.2rem;
-}
-
-.result-box {
-    background: #f9fbff;
-    border: 2px solid #dbeafe;
-    border-radius: 18px;
-    padding: 16px;
-    color: #5f6680;
-    line-height: 1.7;
-}
-
-.complete-box {
-    background: #fff8fd;
-    border: 2px solid #f4cce0;
-    border-radius: 22px;
-    padding: 16px;
-    margin-top: 14px;
-}
-
-div.stButton > button {
-    width: 100%;
-    min-height: 56px;
-    border-radius: 18px;
-    font-size: 17px;
-    font-weight: 700;
-    border: none;
-    transition: all 0.15s ease-in-out;
-}
-
-div.stButton > button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-}
-
-/* 시작 버튼 */
-div.st-key-start_button button {
-    background: #ffd6e7;
-    color: #6a4a5e;
-    border: 2px solid #f6bad2;
-}
-
-/* 교사용 버튼 */
-div.st-key-teacher_button button {
-    background: #e8eefc;
-    color: #687394;
-    border: 2px solid #d7e2fb;
-}
-
-/* 가능 / 제한 / 금지 */
-div.st-key-green_btn button {
-    background: #c9f7d6;
-    color: #336247;
-    border: 2px solid #aeeac0;
-}
-
-div.st-key-yellow_btn button {
-    background: #fff0b8;
-    color: #7a6220;
-    border: 2px solid #ffe08a;
-}
-
-div.st-key-red_btn button {
-    background: #ffc9c9;
-    color: #7b4040;
-    border: 2px solid #ffadad;
-}
-
-/* 다음 버튼 */
-div.st-key-next_button button,
-div.st-key-home_button button {
-    background: #d9d6ff;
-    color: #564f8b;
-    border: 2px solid #c7c2ff;
-}
-
-/* disabled 버튼도 귀엽게 */
-div.stButton > button:disabled {
-    background: #f3f1f7 !important;
-    color: #b0a8b8 !important;
-    border: 2px solid #ece7f3 !important;
-    opacity: 1 !important;
-    cursor: not-allowed;
-    box-shadow: none !important;
-    transform: none !important;
-}
-
-.stTextArea textarea {
-    border-radius: 16px !important;
-    border: 2px solid #eadff0 !important;
-    background: #fffdfd !important;
-    color: #5d5663 !important;
-    font-size: 1rem !important;
-}
-
-.stTextArea textarea:focus {
-    border: 2px solid #d9c8f3 !important;
-    box-shadow: 0 0 0 0.1rem rgba(217, 200, 243, 0.35) !important;
-}
-
-div[data-testid="stProgressBar"] > div > div {
-    background-color: #f6c7dd !important;
-}
-
-hr {
-    border: none;
-    height: 1px;
-    background: #f0e5ee;
-    margin: 18px 0;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# 세션 상태 초기화
-# ==========================================
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
@@ -224,23 +43,265 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 # ==========================================
-# 함수
+# 3. 스타일
 # ==========================================
+
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+
+html, body, p, button, textarea,
+div[data-testid="stAppViewContainer"],
+div[data-testid="stWidgetLabel"],
+div[data-testid="stMarkdownContainer"] {
+    font-family: 'Gowun Dodum', sans-serif !important;
+}
+
+.stApp {
+    background: linear-gradient(
+        180deg,
+        #fff8fc 0%,
+        #f7faff 100%
+    );
+}
+
+.block-container {
+    max-width: 700px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+/* 제목 */
+.main-title {
+    text-align: center;
+    font-size: 2.3rem;
+    font-weight: bold;
+    color: #65536d;
+    margin: 15px 0;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #85758e;
+    line-height: 1.9;
+    margin-bottom: 25px;
+}
+
+.group-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #65536d;
+    margin: 25px 0 10px;
+}
+
+.question {
+    text-align: center;
+    color: #87778f;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+}
+
+/* 평가 기준 안내 */
+.guide-box {
+    background: #fff2f8;
+    border: 2px dashed #efc2d9;
+    padding: 24px;
+    border-radius: 22px;
+    line-height: 2.3;
+    color: #67586e;
+    margin: 25px 0;
+}
+
+/* 버튼 기본 */
+div.stButton > button {
+    font-family: 'Gowun Dodum', sans-serif !important;
+    width: 100%;
+    border-radius: 18px;
+    font-weight: bold;
+    transition: all 0.15s ease;
+}
+
+div.stButton > button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* 시작 버튼 */
+.st-key-start_button button {
+    background: #ffd8e8 !important;
+    color: #754f67 !important;
+    border: 2px solid #f4bbd4 !important;
+    min-height: 60px;
+    font-size: 19px;
+}
+
+/* 교사용 버튼 */
+.st-key-teacher_button button {
+    background: #e7edfa !important;
+    color: #7c83a0 !important;
+    border: 2px solid #d9e1f4 !important;
+    min-height: 55px;
+}
+
+/* 신호등 버튼 공통 */
+.st-key-green_btn button,
+.st-key-yellow_btn button,
+.st-key-red_btn button {
+    height: 95px !important;
+    min-height: 95px !important;
+    font-size: 23px !important;
+    border-radius: 22px !important;
+    white-space: normal !important;
+}
+
+/* 가능 */
+.st-key-green_btn button {
+    background: #baf3cb !important;
+    color: #316747 !important;
+    border: 3px solid #9be5b0 !important;
+}
+
+/* 제한 */
+.st-key-yellow_btn button {
+    background: #ffedac !important;
+    color: #806123 !important;
+    border: 3px solid #ffdc83 !important;
+}
+
+/* 금지 */
+.st-key-red_btn button {
+    background: #ffc6cb !important;
+    color: #873f49 !important;
+    border: 3px solid #ffa9b2 !important;
+}
+
+/* 현재 선택된 버튼 */
+.selected-traffic button {
+    outline: 4px solid #82718d !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 5px 15px rgba(90,70,110,0.15);
+}
+
+/* 다음 버튼 */
+.st-key-next_button button,
+.st-key-home_button button {
+    background: #ded8ff !important;
+    color: #5c548b !important;
+    border: 2px solid #c8c0f6 !important;
+    min-height: 60px;
+    font-size: 19px;
+}
+
+.st-key-next_button button:disabled {
+    background: #f0edf5 !important;
+    color: #aaa3b5 !important;
+    border: 2px solid #e7e1ec !important;
+    opacity: 1 !important;
+}
+
+/* 이유 입력 */
+.stTextArea textarea {
+    font-family: 'Gowun Dodum', sans-serif !important;
+    background: #ffffff !important;
+    border: 2px solid #e7d9ed !important;
+    border-radius: 18px !important;
+    color: #554b60 !important;
+    font-size: 17px !important;
+}
+
+.stTextArea textarea:focus {
+    border-color: #c8b6e8 !important;
+    box-shadow: 0 0 0 2px #eee5fb !important;
+}
+
+/* 안내 및 결과 상자 */
+.info-box {
+    background: #f2f0ff;
+    border: 2px solid #ddd5fa;
+    color: #635a7e;
+    padding: 18px;
+    border-radius: 16px;
+    text-align: center;
+    line-height: 1.8;
+    margin: 20px 0;
+}
+
+.result-card {
+    background: #fff2f8;
+    border: 2px solid #f3d2e4;
+    padding: 20px;
+    border-radius: 18px;
+    margin: 15px 0;
+    color: #67586d;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.small-note {
+    text-align: center;
+    color: #998c9e;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-top: 15px;
+}
+
+div[data-testid="stProgress"] {
+    margin-top: 20px;
+}
+
+@media (max-width: 500px) {
+    .main-title {
+        font-size: 1.8rem;
+    }
+    .group-title {
+        font-size: 1.6rem;
+    }
+    .st-key-green_btn button,
+    .st-key-yellow_btn button,
+    .st-key-red_btn button {
+        font-size: 17px !important;
+        height: 85px !important;
+        min-height: 85px !important;
+        padding: 5px !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# 4. 기능 함수
+# ==========================================
+
 def start_evaluation():
+    """새로운 평가 시작"""
     st.session_state.page = "evaluation"
     st.session_state.current_group = 1
     st.session_state.selected = None
     st.session_state.results = []
 
+    for i in range(1, TOTAL_GROUPS + 1):
+        key = f"reason_{i}"
+        if key in st.session_state:
+            del st.session_state[key]
+
+
 def select_answer(answer):
+    """선택만 변경하고 페이지는 이동하지 않음"""
     st.session_state.selected = answer
 
+
 def save_and_next():
+    """선택과 이유를 검증하고 저장"""
     group = st.session_state.current_group
     answer = st.session_state.selected
-    reason = st.session_state.get(f"reason_{group}", "").strip()
 
-    if answer is None or reason == "":
+    reason = st.session_state.get(
+        f"reason_{group}", ""
+    ).strip()
+
+    if answer is None or not reason:
         return
 
     st.session_state.results.append({
@@ -256,61 +317,99 @@ def save_and_next():
     else:
         st.session_state.page = "complete"
 
-# ==========================================
-# 시작 화면
-# ==========================================
-if st.session_state.page == "home":
-    st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
-    st.markdown('<div class="title-main">🚦 AI 신호등 평가</div>', unsafe_allow_html=True)
+def go_home():
+    st.session_state.page = "home"
+    st.session_state.current_group = 1
+    st.session_state.selected = None
+    st.session_state.results = []
+
+
+def title(text):
     st.markdown(
-        '<div class="subtitle-main">우리의 인공지능 서비스,<br>사용해도 괜찮을까요?</div>',
+        f'<div class="main-title">{text}</div>',
+        unsafe_allow_html=True
+    )
+
+
+# ==========================================
+# 5. 시작 화면
+# ==========================================
+
+if st.session_state.page == "home":
+
+    title("🚦 AI 신호등 평가")
+
+    st.markdown("""
+    <div class="subtitle">
+        우리의 인공지능 서비스,<br>
+        사용해도 괜찮을까요? 🌷
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="guide-box">
+        🟢 <b>가능</b> : 바로 사용할 의사가 있어요.<br>
+        🟡 <b>제한</b> : 조건이나 보완이 이루어진다면 사용할 의사가 있어요.<br>
+        🔴 <b>금지</b> : 사용할 의사가 없어요.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="small-note">
+        1조부터 4조까지 차례대로 평가해 주세요.<br>
+        평가를 선택하고 이유를 작성해야 다음으로 넘어갈 수 있어요.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("")
+
+    st.button(
+        "🌷 평가 시작하기",
+        key="start_button",
+        use_container_width=True,
+        on_click=start_evaluation
+    )
+
+    st.write("")
+    st.divider()
+
+    st.button(
+        "🧸 교사용 결과 확인 (준비 중)",
+        key="teacher_button",
+        use_container_width=True,
+        disabled=True
+    )
+
+
+# ==========================================
+# 6. 평가 화면
+# ==========================================
+
+elif st.session_state.page == "evaluation":
+
+    group = st.session_state.current_group
+    selected = st.session_state.selected
+
+    title("🚦 AI 신호등 평가")
+
+    st.progress(
+        (group - 1) / TOTAL_GROUPS,
+        text=f"평가 진행 : {group} / {TOTAL_GROUPS}"
+    )
+
+    st.markdown(
+        f'<div class="group-title">🌼 {group}조 평가하기</div>',
         unsafe_allow_html=True
     )
 
     st.markdown("""
-    <div class="guide-box">
-        🟢 <b>가능</b> : 인공지능 서비스를 바로 사용할 의사가 있어요.<br>
-        🟡 <b>제한</b> : 조건 또는 보완이 이루어진다면 사용할 의사가 있어요.<br>
-        🔴 <b>금지</b> : 인공지능 서비스를 사용할 의사가 없어요.
+    <div class="question">
+        이 인공지능 서비스를 사용하시겠습니까?
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="small-note">1조부터 4조까지 순서대로 평가해 주세요.<br>평가를 선택하고 이유를 작성해야 다음 조로 넘어갈 수 있어요.</div>',
-        unsafe_allow_html=True
-    )
-
-    st.write("")
-    if st.button("🌷 평가 시작하기", key="start_button", use_container_width=True):
-        start_evaluation()
-        st.rerun()
-
-    st.write("")
-    st.button(
-        "🧸 교사용 결과 확인 (준비 중)",
-        key="teacher_button",
-        disabled=True,
-        use_container_width=True
-    )
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ==========================================
-# 평가 화면
-# ==========================================
-elif st.session_state.page == "evaluation":
-    group = st.session_state.current_group
-    selected = st.session_state.selected
-
-    st.markdown('<div class="main-card">', unsafe_allow_html=True)
-
-    st.markdown('<div class="title-main">🚦 AI 신호등 평가</div>', unsafe_allow_html=True)
-    st.progress((group - 1) / TOTAL_GROUPS, text=f"평가 진행 : {group} / {TOTAL_GROUPS}")
-
-    st.markdown(f'<div class="section-title">{group}조 평가하기</div>', unsafe_allow_html=True)
-    st.markdown('<div class="question-text">이 인공지능 서비스를 사용하시겠습니까?</div>', unsafe_allow_html=True)
-
+    # 신호등 버튼
     col1, col2, col3 = st.columns(3, gap="small")
 
     with col1:
@@ -340,93 +439,138 @@ elif st.session_state.page == "evaluation":
             args=("금지",)
         )
 
-    st.write("")
-
+    # 선택된 버튼 테두리 강조
     if selected is not None:
-        emoji_map = {"가능": "🟢", "제한": "🟡", "금지": "🔴"}
+        button_classes = {
+            "가능": "green_btn",
+            "제한": "yellow_btn",
+            "금지": "red_btn"
+        }
+
+        chosen_key = button_classes[selected]
+
         st.markdown(
             f"""
-            <div class="result-box">
-                <b>{emoji_map[selected]} 선택한 평가 : {selected}</b><br>
+            <style>
+            .st-key-{chosen_key} button {{
+                outline: 4px solid #82718d !important;
+                outline-offset: 3px !important;
+                box-shadow: 0 5px 15px rgba(90,70,110,0.15);
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            f"""
+            <div class="info-box">
+                <b>{EMOJI[selected]} 선택한 평가 : {selected}</b><br>
                 {CRITERIA[selected]}
             </div>
             """,
             unsafe_allow_html=True
         )
     else:
-        st.info("세 가지 버튼 중 하나를 먼저 선택해 주세요.")
+        st.markdown("""
+        <div class="info-box">
+            🍀 세 가지 신호등 중 하나를 선택해 주세요!
+        </div>
+        """, unsafe_allow_html=True)
 
     st.write("")
 
+    # 이유 작성: 선택 버튼과 독립적으로 동작
     reason = st.text_area(
-        "📝 그렇게 평가한 이유를 작성해 주세요. (100자 이내)",
-        placeholder="예) 개인정보 보호 대책이 충분하지 않아서 바로 사용하기는 어려워요.",
+        "📝 그렇게 평가한 이유를 작성해 주세요.",
+        placeholder=(
+            "예) 개인정보 보호를 위한 대책이 부족해서 "
+            "바로 사용하기 어려울 것 같아요."
+        ),
         max_chars=100,
-        height=140,
+        height=145,
         key=f"reason_{group}"
     )
 
-    can_next = (selected is not None) and (len(reason.strip()) > 0)
+    # 선택 여부 + 이유 입력 여부 확인
+    can_next = (
+        st.session_state.selected is not None
+        and bool(reason.strip())
+    )
+
+    st.write("")
 
     if group < TOTAL_GROUPS:
         next_text = f"다음 : {group + 1}조 평가하기 →"
     else:
         next_text = "💌 모든 평가 제출하기"
 
-    st.write("")
     st.button(
         next_text,
         key="next_button",
-        type="secondary",
-        disabled=not can_next,
         use_container_width=True,
+        disabled=not can_next,
         on_click=save_and_next
     )
 
     if not can_next:
-        st.markdown(
-            '<div class="small-note">평가 선택과 이유 작성을 완료해야 다음 단계로 이동할 수 있어요.</div>',
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <div class="small-note">
+            🌸 평가 선택과 이유 작성을 완료하면<br>
+            다음 조로 넘어갈 수 있어요.
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 완료 화면
+# 7. 평가 완료 화면
 # ==========================================
+
 elif st.session_state.page == "complete":
-    st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
-    st.markdown('<div class="title-main">🎉 평가 완료!</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="subtitle-main">1조부터 4조까지 모든 평가를 완료했어요.<br>신중하게 평가해 주셔서 고마워요!</div>',
-        unsafe_allow_html=True
-    )
+    title("🎉 평가 완료!")
 
-    st.markdown('<div class="section-title">📋 나의 평가 결과</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="subtitle">
+        1조부터 4조까지 모든 평가를 완료했어요!<br>
+        신중하게 평가해 주셔서 고마워요. 💗
+    </div>
+    """, unsafe_allow_html=True)
 
-    emoji_map = {"가능": "🟢", "제한": "🟡", "금지": "🔴"}
+    st.subheader("📋 나의 평가 결과")
 
     for result in st.session_state.results:
+
+        group = result["group"]
+        answer = result["answer"]
+        reason = escape(result["reason"]).replace(
+            "\n", "<br>"
+        )
+
         st.markdown(
             f"""
-            <div class="complete-box">
-                <b>{result["group"]}조 : {emoji_map[result["answer"]]} {result["answer"]}</b><br>
-                <div style="margin-top:8px; color:#6b6470;">{result["reason"]}</div>
+            <div class="result-card">
+                <b>{group}조 : {EMOJI[answer]} {answer}</b>
+                <div style="margin-top:10px;">
+                    {reason}
+                </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    st.write("")
-    st.caption("현재 버전은 결과가 서버에 저장되지 않고, 접속한 화면에서만 임시로 유지됩니다.")
+    st.markdown("""
+    <div class="small-note">
+        현재는 평가 결과가 서버에 저장되지 않아요.<br>
+        결과를 확인한 뒤 화면을 닫아 주세요.
+    </div>
+    """, unsafe_allow_html=True)
 
     st.write("")
-    if st.button("🏠 처음으로 돌아가기", key="home_button", use_container_width=True):
-        st.session_state.page = "home"
-        st.session_state.current_group = 1
-        st.session_state.selected = None
-        st.session_state.results = []
-        st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.button(
+        "🏠 처음으로 돌아가기",
+        key="home_button",
+        use_container_width=True,
+        on_click=go_home
+    )
