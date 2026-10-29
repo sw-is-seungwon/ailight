@@ -29,7 +29,7 @@ EMOJI = {
 }
 
 # ==========================================
-# 2. 세션 상태 초기화
+# 2. 세션 상태
 # ==========================================
 
 if "page" not in st.session_state:
@@ -67,9 +67,7 @@ div[data-testid="stMarkdownContainer"] {
 
 .stApp {
     background: linear-gradient(
-        180deg,
-        #fff8fc 0%,
-        #f7faff 100%
+        180deg, #fff8fc 0%, #f7faff 100%
     );
 }
 
@@ -79,7 +77,6 @@ div[data-testid="stMarkdownContainer"] {
     padding-bottom: 3rem;
 }
 
-/* 제목 */
 .main-title {
     text-align: center;
     font-size: 2.3rem;
@@ -111,7 +108,7 @@ div[data-testid="stMarkdownContainer"] {
     margin-bottom: 25px;
 }
 
-/* 시작 화면의 안내 */
+/* 평가 기준 */
 .guide-box {
     background: #fff2f8;
     border: 2px dashed #efc2d9;
@@ -122,7 +119,7 @@ div[data-testid="stMarkdownContainer"] {
     margin: 25px 0;
 }
 
-/* 모든 버튼의 기본 디자인 */
+/* 버튼 공통 */
 div.stButton > button {
     font-family: 'Gowun Dodum', sans-serif !important;
     width: 100%;
@@ -145,7 +142,7 @@ div.stButton > button:hover:not(:disabled) {
     font-size: 19px;
 }
 
-/* 신호등 버튼 크기 */
+/* 신호등 버튼 */
 .st-key-green_btn button,
 .st-key-yellow_btn button,
 .st-key-red_btn button {
@@ -156,28 +153,28 @@ div.stButton > button:hover:not(:disabled) {
     white-space: normal !important;
 }
 
-/* 가능 - 파스텔 민트 */
+/* 가능 */
 .st-key-green_btn button {
     background: #baf3cb !important;
     color: #316747 !important;
     border: 3px solid #9be5b0 !important;
 }
 
-/* 제한 - 파스텔 노랑 */
+/* 제한 */
 .st-key-yellow_btn button {
     background: #ffedac !important;
     color: #806123 !important;
     border: 3px solid #ffdc83 !important;
 }
 
-/* 금지 - 파스텔 분홍 */
+/* 금지 */
 .st-key-red_btn button {
     background: #ffc6cb !important;
     color: #873f49 !important;
     border: 3px solid #ffa9b2 !important;
 }
 
-/* 다음 및 처음 버튼 */
+/* 다음, 처음 버튼 */
 .st-key-next_button button,
 .st-key-home_button button {
     background: #ded8ff !important;
@@ -187,7 +184,6 @@ div.stButton > button:hover:not(:disabled) {
     font-size: 19px;
 }
 
-/* 다음 버튼 비활성화 */
 .st-key-next_button button:disabled {
     background: #f0edf5 !important;
     color: #aaa3b5 !important;
@@ -195,7 +191,7 @@ div.stButton > button:hover:not(:disabled) {
     opacity: 1 !important;
 }
 
-/* 이유 작성 칸 */
+/* 입력창 */
 .stTextArea textarea {
     font-family: 'Gowun Dodum', sans-serif !important;
     background: #ffffff !important;
@@ -210,7 +206,7 @@ div.stButton > button:hover:not(:disabled) {
     box-shadow: 0 0 0 2px #eee5fb !important;
 }
 
-/* 선택 안내 */
+/* 선택 결과 */
 .info-box {
     background: #f2f0ff;
     border: 2px solid #ddd5fa;
@@ -222,7 +218,7 @@ div.stButton > button:hover:not(:disabled) {
     margin: 20px 0;
 }
 
-/* 완료 화면 결과 */
+/* 완료 화면 */
 .result-card {
     background: #fff2f8;
     border: 2px solid #f3d2e4;
@@ -242,11 +238,6 @@ div.stButton > button:hover:not(:disabled) {
     margin-top: 15px;
 }
 
-div[data-testid="stProgress"] {
-    margin-top: 20px;
-}
-
-/* 스마트폰 화면 */
 @media (max-width: 500px) {
     .main-title {
         font-size: 1.8rem;
@@ -269,34 +260,32 @@ div[data-testid="stProgress"] {
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. Google Sheets 전송
+# 4. Google Sheets 일괄 전송
 # ==========================================
 
-def send_evaluation(group, answer, reason):
-    """Apps Script를 통해 평가 결과 저장"""
+def send_all_evaluations(results):
+    """네 조의 평가를 한 번에 Apps Script에 전송"""
 
     payload = {
-        "action": "save",
+        "action": "save_all",
         "participant_id": st.session_state.participant_id,
-        "group": group,
-        "answer": answer,
-        "reason": reason
+        "results": results
     }
 
     response = requests.post(
         st.secrets["apps_script_url"],
         json=payload,
-        timeout=(4, 12),
+        timeout=(4, 15),
         allow_redirects=True
     )
 
     response.raise_for_status()
 
-    result = response.json()
+    data = response.json()
 
-    if not result.get("ok"):
+    if not data.get("ok"):
         raise RuntimeError(
-            result.get("message", "저장 실패")
+            data.get("message", "저장에 실패했습니다.")
         )
 
 # ==========================================
@@ -311,26 +300,21 @@ def start_evaluation():
     st.session_state.selected = None
     st.session_state.results = []
     st.session_state.save_error = ""
-
-    # 학생별 임의 참여 ID
     st.session_state.participant_id = uuid.uuid4().hex
 
-    # 이전 평가 이유 초기화
     for i in range(1, TOTAL_GROUPS + 1):
-        st.session_state.pop(
-            f"reason_{i}", None
-        )
+        st.session_state.pop(f"reason_{i}", None)
 
 
 def select_answer(answer):
-    """평가 버튼은 선택만 변경"""
+    """신호등 평가 선택"""
 
     st.session_state.selected = answer
     st.session_state.save_error = ""
 
 
 def save_and_next():
-    """Google Sheets 저장 후 다음 조로 이동"""
+    """1~3조는 임시 저장, 4조에서 최종 전송"""
 
     group = st.session_state.current_group
     answer = st.session_state.selected
@@ -339,39 +323,55 @@ def save_and_next():
         f"reason_{group}", ""
     ).strip()
 
-    # 선택과 이유가 모두 있어야 저장
+    # 입력 확인
     if answer not in CRITERIA or not reason:
         st.session_state.save_error = (
             "평가를 선택하고 이유를 작성해 주세요."
         )
         return False
 
-    # Google Sheets로 전송
-    try:
-        send_evaluation(group, answer, reason)
-
-    except Exception:
-        st.session_state.save_error = (
-            "평가 결과를 저장하지 못했어요. "
-            "잠시 후 다시 시도해 주세요."
-        )
-        return False
-
-    # 저장 성공
-    st.session_state.save_error = ""
-
-    st.session_state.results.append({
+    current_result = {
         "group": group,
         "answer": answer,
         "reason": reason
-    })
+    }
 
-    st.session_state.selected = None
-
+    # 1~3조: 서버 전송 없이 다음 조로 이동
     if group < TOTAL_GROUPS:
+
+        st.session_state.results.append(current_result)
         st.session_state.current_group += 1
-    else:
-        st.session_state.page = "complete"
+        st.session_state.selected = None
+        st.session_state.save_error = ""
+
+        return True
+
+    # 4조: 총 4개 결과 일괄 제출
+    all_results = (
+        st.session_state.results + [current_result]
+    )
+
+    if len(all_results) != TOTAL_GROUPS:
+        st.session_state.save_error = (
+            "평가 결과를 확인해 주세요."
+        )
+        return False
+
+    try:
+        send_all_evaluations(all_results)
+
+    except Exception:
+        st.session_state.save_error = (
+            "평가 결과를 전송하지 못했어요. "
+            "잠시 후 다시 제출해 주세요."
+        )
+        return False
+
+    # 전송 성공 시 완료 화면으로
+    st.session_state.results = all_results
+    st.session_state.selected = None
+    st.session_state.save_error = ""
+    st.session_state.page = "complete"
 
     return True
 
@@ -424,7 +424,6 @@ if st.session_state.page == "home":
 
     st.write("")
 
-    # 학생용에는 교사용 버튼 없음
     st.button(
         "🌷 평가 시작하기",
         key="start_button",
@@ -458,13 +457,8 @@ elif st.session_state.page == "evaluation":
     </div>
     """, unsafe_allow_html=True)
 
-    # --------------------------------------
-    # 신호등 버튼
-    # --------------------------------------
-
-    col1, col2, col3 = st.columns(
-        3, gap="small"
-    )
+    # 세 가지 신호등 버튼
+    col1, col2, col3 = st.columns(3, gap="small")
 
     with col1:
         st.button(
@@ -493,10 +487,7 @@ elif st.session_state.page == "evaluation":
             args=("금지",)
         )
 
-    # --------------------------------------
-    # 현재 선택한 평가 표시
-    # --------------------------------------
-
+    # 선택한 평가 강조 표시
     selected = st.session_state.selected
 
     if selected is not None:
@@ -540,10 +531,7 @@ elif st.session_state.page == "evaluation":
 
     st.write("")
 
-    # --------------------------------------
-    # 평가 이유 작성
-    # --------------------------------------
-
+    # 평가 이유 입력
     reason = st.text_area(
         "📝 그렇게 평가한 이유를 작성해 주세요.",
         placeholder=(
@@ -555,8 +543,6 @@ elif st.session_state.page == "evaluation":
         key=f"reason_{group}"
     )
 
-    # 이유를 먼저 작성하거나
-    # 버튼을 먼저 선택해도 정상 동작
     can_next = (
         st.session_state.selected is not None
         and bool(reason.strip())
@@ -569,10 +555,8 @@ elif st.session_state.page == "evaluation":
     else:
         next_text = "💌 모든 평가 제출하기"
 
-    # --------------------------------------
-    # 다음 조 버튼 (수정)
-    # --------------------------------------
-
+    # 1~3조는 즉시 이동
+    # 4조는 서버 전송 후 완료
     if st.button(
         next_text,
         key="next_button",
@@ -580,20 +564,19 @@ elif st.session_state.page == "evaluation":
         disabled=not can_next
     ):
 
-        with st.spinner(
-            "🌷 평가 결과를 저장하고 있어요..."
-        ):
+        if group == TOTAL_GROUPS:
+            with st.spinner(
+                "🌷 모든 평가 결과를 제출하고 있어요..."
+            ):
+                success = save_and_next()
+        else:
             success = save_and_next()
 
-        # 저장 성공 시에만 화면 전환
         if success:
             st.rerun()
 
-    # 저장 실패 시 메시지 표시
     if st.session_state.save_error:
-        st.error(
-            st.session_state.save_error
-        )
+        st.error(st.session_state.save_error)
 
     if not can_next:
         st.markdown("""
