@@ -1,5 +1,9 @@
 
 import streamlit as st
+import gspread
+import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from html import escape
 
 # ==========================================
@@ -42,8 +46,34 @@ if "selected" not in st.session_state:
 if "results" not in st.session_state:
     st.session_state.results = []
 
+# 학생마다 임의 참여 ID 부여
+if "participant_id" not in st.session_state:
+    st.session_state.participant_id = uuid.uuid4().hex
+
 # ==========================================
-# 3. 스타일
+# 3. Google Sheets 연결 (추가)
+# ==========================================
+
+@st.cache_resource
+def get_worksheet():
+
+    credentials = dict(
+        st.secrets["gcp_service_account"]
+    )
+
+    client = gspread.service_account_from_dict(
+        credentials
+    )
+
+    spreadsheet = client.open_by_key(
+        st.secrets["sheet_id"]
+    )
+
+    return spreadsheet.worksheet("평가결과")
+
+
+# ==========================================
+# 4. 스타일
 # ==========================================
 
 st.markdown("""
@@ -271,7 +301,7 @@ div[data-testid="stProgress"] {
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. 기능 함수
+# 5. 기능 함수
 # ==========================================
 
 def start_evaluation():
@@ -280,6 +310,9 @@ def start_evaluation():
     st.session_state.current_group = 1
     st.session_state.selected = None
     st.session_state.results = []
+
+    # 새로운 평가의 참여 ID
+    st.session_state.participant_id = uuid.uuid4().hex
 
     for i in range(1, TOTAL_GROUPS + 1):
         key = f"reason_{i}"
@@ -293,7 +326,7 @@ def select_answer(answer):
 
 
 def save_and_next():
-    """선택과 이유를 검증하고 저장"""
+    """선택과 이유를 검증하고 Google Sheets 저장"""
     group = st.session_state.current_group
     answer = st.session_state.selected
 
@@ -304,6 +337,35 @@ def save_and_next():
     if answer is None or not reason:
         return
 
+    # --------------------------------------
+    # Google Sheets에 평가 결과 저장 (추가)
+    # --------------------------------------
+    try:
+        worksheet = get_worksheet()
+
+        submitted_at = datetime.now(
+            ZoneInfo("Asia/Seoul")
+        ).strftime("%Y-%m-%d %H:%M:%S")
+
+        worksheet.append_row(
+            [
+                submitted_at,
+                st.session_state.participant_id,
+                group,
+                answer,
+                reason
+            ],
+            value_input_option="RAW"
+        )
+
+    except Exception:
+        st.error(
+            "평가 결과 저장에 실패했어요. "
+            "잠시 후 다시 시도해 주세요."
+        )
+        return
+
+    # 기존 동작 유지
     st.session_state.results.append({
         "group": group,
         "answer": answer,
@@ -316,6 +378,8 @@ def save_and_next():
         st.session_state.current_group += 1
     else:
         st.session_state.page = "complete"
+
+    st.rerun()
 
 
 def go_home():
@@ -333,7 +397,7 @@ def title(text):
 
 
 # ==========================================
-# 5. 시작 화면
+# 6. 시작 화면
 # ==========================================
 
 if st.session_state.page == "home":
@@ -383,7 +447,7 @@ if st.session_state.page == "home":
 
 
 # ==========================================
-# 6. 평가 화면
+# 7. 평가 화면
 # ==========================================
 
 elif st.session_state.page == "evaluation":
@@ -480,7 +544,7 @@ elif st.session_state.page == "evaluation":
 
     st.write("")
 
-    # 이유 작성: 선택 버튼과 독립적으로 동작
+    # 이유 작성: 평가 선택과 독립적
     reason = st.text_area(
         "📝 그렇게 평가한 이유를 작성해 주세요.",
         placeholder=(
@@ -492,7 +556,6 @@ elif st.session_state.page == "evaluation":
         key=f"reason_{group}"
     )
 
-    # 선택 여부 + 이유 입력 여부 확인
     can_next = (
         st.session_state.selected is not None
         and bool(reason.strip())
@@ -523,7 +586,7 @@ elif st.session_state.page == "evaluation":
 
 
 # ==========================================
-# 7. 평가 완료 화면
+# 8. 평가 완료 화면
 # ==========================================
 
 elif st.session_state.page == "complete":
@@ -561,7 +624,7 @@ elif st.session_state.page == "complete":
 
     st.markdown("""
     <div class="small-note">
-        현재는 평가 결과가 서버에 저장되지 않아요.<br>
+        평가 결과가 제출되었어요.<br>
         결과를 확인한 뒤 화면을 닫아 주세요.
     </div>
     """, unsafe_allow_html=True)
