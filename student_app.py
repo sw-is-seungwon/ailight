@@ -155,23 +155,26 @@ div.stButton > button:hover:not(:disabled) {
     font-size: 22px !important;
 }
 
-/* 신호등 버튼 */
+
+/* 신호등 버튼 크기 */
 .st-key-green_btn button,
 .st-key-yellow_btn button,
 .st-key-red_btn button {
     height: 95px !important;
     min-height: 95px !important;
-    font-size: 27px !important;
     border-radius: 22px !important;
-    white-space: normal !important;
 }
 
-/* 가능 */
-.st-key-green_btn button {
-    background: #baf3cb !important;
-    color: #275c3e !important;
-    border: 3px solid #9be5b0 !important;
+/* 버튼 안의 글씨 크기 강제 적용 */
+.st-key-green_btn button p,
+.st-key-yellow_btn button p,
+.st-key-red_btn button p {
+    font-family: 'Gowun Dodum', sans-serif !important;
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
 }
+
 
 /* 제한 */
 .st-key-yellow_btn button {
