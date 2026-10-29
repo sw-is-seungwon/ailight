@@ -1,9 +1,8 @@
 
 import streamlit as st
-import gspread
+import requests
 import uuid
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from html import escape
 
 # ==========================================
@@ -31,7 +30,7 @@ EMOJI = {
 }
 
 # ==========================================
-# 2. 세션 상태
+# 2. 세션 상태 초기화
 # ==========================================
 
 if "page" not in st.session_state:
@@ -46,34 +45,14 @@ if "selected" not in st.session_state:
 if "results" not in st.session_state:
     st.session_state.results = []
 
-# 학생마다 임의 참여 ID 부여
 if "participant_id" not in st.session_state:
     st.session_state.participant_id = uuid.uuid4().hex
 
-# ==========================================
-# 3. Google Sheets 연결 (추가)
-# ==========================================
-
-@st.cache_resource
-def get_worksheet():
-
-    credentials = dict(
-        st.secrets["gcp_service_account"]
-    )
-
-    client = gspread.service_account_from_dict(
-        credentials
-    )
-
-    spreadsheet = client.open_by_key(
-        st.secrets["sheet_id"]
-    )
-
-    return spreadsheet.worksheet("평가결과")
-
+if "save_error" not in st.session_state:
+    st.session_state.save_error = ""
 
 # ==========================================
-# 4. 스타일
+# 3. 디자인
 # ==========================================
 
 st.markdown("""
@@ -167,14 +146,6 @@ div.stButton > button:hover:not(:disabled) {
     font-size: 19px;
 }
 
-/* 교사용 버튼 */
-.st-key-teacher_button button {
-    background: #e7edfa !important;
-    color: #7c83a0 !important;
-    border: 2px solid #d9e1f4 !important;
-    min-height: 55px;
-}
-
 /* 신호등 버튼 공통 */
 .st-key-green_btn button,
 .st-key-yellow_btn button,
@@ -205,13 +176,6 @@ div.stButton > button:hover:not(:disabled) {
     background: #ffc6cb !important;
     color: #873f49 !important;
     border: 3px solid #ffa9b2 !important;
-}
-
-/* 현재 선택된 버튼 */
-.selected-traffic button {
-    outline: 4px solid #82718d !important;
-    outline-offset: 3px !important;
-    box-shadow: 0 5px 15px rgba(90,70,110,0.15);
 }
 
 /* 다음 버튼 */
@@ -246,7 +210,7 @@ div.stButton > button:hover:not(:disabled) {
     box-shadow: 0 0 0 2px #eee5fb !important;
 }
 
-/* 안내 및 결과 상자 */
+/* 안내 및 결과 */
 .info-box {
     background: #f2f0ff;
     border: 2px solid #ddd5fa;
@@ -285,9 +249,11 @@ div[data-testid="stProgress"] {
     .main-title {
         font-size: 1.8rem;
     }
+
     .group-title {
         font-size: 1.6rem;
     }
+
     .st-key-green_btn button,
     .st-key-yellow_btn button,
     .st-key-red_btn button {
@@ -301,32 +267,56 @@ div[data-testid="stProgress"] {
 """, unsafe_allow_html=True)
 
 # ==========================================
+# 4. Google Sheets 전송
+# ==========================================
+
+def send_evaluation(group, answer, reason):
+
+    payload = {
+        "action": "save",
+        "participant_id": st.session_state.participant_id,
+        "group": group,
+        "answer": answer,
+        "reason": reason
+    }
+
+    response = requests.post(
+        st.secrets["apps_script_url"],
+        json=payload,
+        timeout=25
+    )
+
+    response.raise_for_status()
+    result = response.json()
+
+    if not result.get("ok"):
+        raise RuntimeError(
+            result.get("message", "저장 실패")
+        )
+
+# ==========================================
 # 5. 기능 함수
 # ==========================================
 
 def start_evaluation():
-    """새로운 평가 시작"""
     st.session_state.page = "evaluation"
     st.session_state.current_group = 1
     st.session_state.selected = None
     st.session_state.results = []
-
-    # 새로운 평가의 참여 ID
+    st.session_state.save_error = ""
     st.session_state.participant_id = uuid.uuid4().hex
 
     for i in range(1, TOTAL_GROUPS + 1):
-        key = f"reason_{i}"
-        if key in st.session_state:
-            del st.session_state[key]
+        st.session_state.pop(f"reason_{i}", None)
 
 
 def select_answer(answer):
-    """선택만 변경하고 페이지는 이동하지 않음"""
     st.session_state.selected = answer
+    st.session_state.save_error = ""
 
 
 def save_and_next():
-    """선택과 이유를 검증하고 Google Sheets 저장"""
+
     group = st.session_state.current_group
     answer = st.session_state.selected
 
@@ -334,38 +324,21 @@ def save_and_next():
         f"reason_{group}", ""
     ).strip()
 
-    if answer is None or not reason:
+    if answer not in CRITERIA or not reason:
         return
 
-    # --------------------------------------
-    # Google Sheets에 평가 결과 저장 (추가)
-    # --------------------------------------
     try:
-        worksheet = get_worksheet()
-
-        submitted_at = datetime.now(
-            ZoneInfo("Asia/Seoul")
-        ).strftime("%Y-%m-%d %H:%M:%S")
-
-        worksheet.append_row(
-            [
-                submitted_at,
-                st.session_state.participant_id,
-                group,
-                answer,
-                reason
-            ],
-            value_input_option="RAW"
-        )
+        send_evaluation(group, answer, reason)
 
     except Exception:
-        st.error(
-            "평가 결과 저장에 실패했어요. "
+        st.session_state.save_error = (
+            "평가 결과를 저장하지 못했어요. "
             "잠시 후 다시 시도해 주세요."
         )
         return
 
-    # 기존 동작 유지
+    st.session_state.save_error = ""
+
     st.session_state.results.append({
         "group": group,
         "answer": answer,
@@ -379,14 +352,13 @@ def save_and_next():
     else:
         st.session_state.page = "complete"
 
-    st.rerun()
-
 
 def go_home():
     st.session_state.page = "home"
     st.session_state.current_group = 1
     st.session_state.selected = None
     st.session_state.results = []
+    st.session_state.save_error = ""
 
 
 def title(text):
@@ -394,7 +366,6 @@ def title(text):
         f'<div class="main-title">{text}</div>',
         unsafe_allow_html=True
     )
-
 
 # ==========================================
 # 6. 시작 화면
@@ -435,17 +406,6 @@ if st.session_state.page == "home":
         on_click=start_evaluation
     )
 
-    st.write("")
-    st.divider()
-
-    st.button(
-        "🧸 교사용 결과 확인 (준비 중)",
-        key="teacher_button",
-        use_container_width=True,
-        disabled=True
-    )
-
-
 # ==========================================
 # 7. 평가 화면
 # ==========================================
@@ -453,7 +413,6 @@ if st.session_state.page == "home":
 elif st.session_state.page == "evaluation":
 
     group = st.session_state.current_group
-    selected = st.session_state.selected
 
     title("🚦 AI 신호등 평가")
 
@@ -473,7 +432,6 @@ elif st.session_state.page == "evaluation":
     </div>
     """, unsafe_allow_html=True)
 
-    # 신호등 버튼
     col1, col2, col3 = st.columns(3, gap="small")
 
     with col1:
@@ -503,23 +461,23 @@ elif st.session_state.page == "evaluation":
             args=("금지",)
         )
 
-    # 선택된 버튼 테두리 강조
+    selected = st.session_state.selected
+
     if selected is not None:
-        button_classes = {
+        button_key = {
             "가능": "green_btn",
             "제한": "yellow_btn",
             "금지": "red_btn"
-        }
-
-        chosen_key = button_classes[selected]
+        }[selected]
 
         st.markdown(
             f"""
             <style>
-            .st-key-{chosen_key} button {{
+            .st-key-{button_key} button {{
                 outline: 4px solid #82718d !important;
                 outline-offset: 3px !important;
-                box-shadow: 0 5px 15px rgba(90,70,110,0.15);
+                box-shadow: 0 5px 15px
+                    rgba(90,70,110,0.15);
             }}
             </style>
             """,
@@ -544,7 +502,6 @@ elif st.session_state.page == "evaluation":
 
     st.write("")
 
-    # 이유 작성: 평가 선택과 독립적
     reason = st.text_area(
         "📝 그렇게 평가한 이유를 작성해 주세요.",
         placeholder=(
@@ -576,6 +533,9 @@ elif st.session_state.page == "evaluation":
         on_click=save_and_next
     )
 
+    if st.session_state.save_error:
+        st.error(st.session_state.save_error)
+
     if not can_next:
         st.markdown("""
         <div class="small-note">
@@ -584,9 +544,8 @@ elif st.session_state.page == "evaluation":
         </div>
         """, unsafe_allow_html=True)
 
-
 # ==========================================
-# 8. 평가 완료 화면
+# 8. 완료 화면
 # ==========================================
 
 elif st.session_state.page == "complete":
@@ -606,9 +565,10 @@ elif st.session_state.page == "complete":
 
         group = result["group"]
         answer = result["answer"]
-        reason = escape(result["reason"]).replace(
-            "\n", "<br>"
-        )
+
+        reason = escape(
+            result["reason"]
+        ).replace("\n", "<br>")
 
         st.markdown(
             f"""
