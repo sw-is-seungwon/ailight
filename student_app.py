@@ -149,8 +149,6 @@ if st.session_state.page == "home":
         horizontal=True, key="class_picker",
     )
     st.markdown(
-        f'<div class="small-note">{CLASSES[selected_class]["label"]}은 '
-        f'1조부터 {CLASSES[selected_class]["groups"]}조까지 평가해요.<br>'
         '평가를 선택하고 이유를 작성해야 다음으로 넘어갈 수 있어요.</div>',
         unsafe_allow_html=True,
     )
