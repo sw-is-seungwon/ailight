@@ -15,7 +15,7 @@ CRITERIA = {
 EMOJI = {"가능": "🟢", "제한": "🟡", "금지": "🔴"}
 
 for key, default in {
-    "page": "home", "selected_class": "A", "current_group": 1,
+    "page": "home", "selected_class": "A", "class_picker": "A", "current_group": 1,
     "selected": None, "results": [], "participant_id": None, "save_error": "",
 }.items():
     if key not in st.session_state:
@@ -62,6 +62,8 @@ div.stButton>button:hover:not(:disabled) {transform:translateY(-2px);box-shadow:
 
 
 def reset_evaluation():
+    # 홈에서 선택한 분반을 평가 시작 시 확정합니다.
+    st.session_state.selected_class = st.session_state.class_picker
     st.session_state.page = "evaluation"
     st.session_state.current_group = 1
     st.session_state.selected = None
@@ -144,7 +146,7 @@ if st.session_state.page == "home":
     selected_class = st.radio(
         "🌼 자신의 분반을 선택해 주세요.", options=list(CLASSES),
         format_func=lambda c: f'{CLASSES[c]["label"]} ({CLASSES[c]["groups"]}개 조)',
-        horizontal=True, key="selected_class",
+        horizontal=True, key="class_picker",
     )
     st.markdown(
         f'<div class="small-note">{CLASSES[selected_class]["label"]}은 '
