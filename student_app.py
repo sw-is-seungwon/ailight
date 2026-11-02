@@ -18,11 +18,11 @@ st.set_page_config(
 # label만 변경하면 화면에 표시되는 이름이 바뀜
 CLASSES = {
     "A": {
-        "label": "A분반",
+        "label": "205",
         "groups": 4
     },
     "B": {
-        "label": "B분반",
+        "label": "206",
         "groups": 5
     }
 }
