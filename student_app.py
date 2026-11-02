@@ -6,7 +6,7 @@ import streamlit as st
 
 st.set_page_config(page_title="AI 신호등 평가", page_icon="🚦", layout="centered")
 
-CLASSES = {"A": {"label": "A분반", "groups": 4}, "B": {"label": "B분반", "groups": 5}}
+CLASSES = {"A": {"label": "205", "groups": 4}, "B": {"label": "206", "groups": 5}}
 CRITERIA = {
     "가능": "인공지능 서비스를 바로 사용할 의사가 있어요.",
     "제한": "조건 또는 보완이 이루어진다면 사용할 의사가 있어요.",
