@@ -904,6 +904,10 @@ elif st.session_state.page == "evaluation":
         height=145,
         key=f"reason_{group}"
     )
+    st.caption(
+    "※ 이름, 학번 등 본인이나 다른 사람을 "
+    "식별할 수 있는 정보는 작성하지 마세요."
+)
 
     can_next = (
         selected in CRITERIA
@@ -1027,3 +1031,30 @@ elif st.session_state.page == "complete":
         use_container_width=True,
         on_click=go_home
     )
+
+# ==========================================
+# 개인정보 처리 안내 (모든 화면 하단 표시)
+# ==========================================
+
+st.markdown("""
+<style>
+.privacy-notice {
+    margin-top: 45px;
+    padding: 18px 10px;
+    border-top: 1px solid #e6e2e9;
+    text-align: center;
+    color: #99939f;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 12px;
+    line-height: 1.9;
+}
+</style>
+
+<div class="privacy-notice">
+    <b>개인정보 처리 안내</b><br>
+    본 웹앱은 AI 서비스 동료평가를 위한 수업용 도구입니다.<br>
+    이름과 학번은 수집하지 않습니다.<br>
+    분반, 평가 결과와 이유, 제출시간이 저장되며<br>
+    담당 교사의 수업 활동 및 결과 분석 목적으로만 활용됩니다.<br>
+</div>
+""", unsafe_allow_html=True)
